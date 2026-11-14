@@ -14,7 +14,7 @@ export type DishListItem = Pick<
   place: Pick<Place, 'id' | 'name' | 'city' | 'cuisine' | 'lat' | 'lng'> | null
 }
 
-const WITH_PLACE ='*, place:places(id, name, city, cuisine, lat, lng)'
+export const WITH_PLACE = '*, place:places(id, name, city, cuisine, lat, lng)'
 
 export interface NewDish {
   name: string

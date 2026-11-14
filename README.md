@@ -122,6 +122,15 @@ It runs in Postgres (`search_dishes` and `list_my_cities`, migration `…000005_
 - It scans one user's dishes, which is fine for thousands of dishes. If it ever feels slow, add a
   generated search column with a trigram/GIN index (the M1 trigram indexes are a start).
 
+## Place page (Milestone 5)
+
+Tap a place name anywhere (Dishes or Want lists) to open `/place/<id>`: its address and cuisine, how many
+dishes you've tried there and your average rating, then your dishes there **best first**. Dishes rated 9–10
+are flagged **Must reorder** and 1–4 are flagged **Skip** (derived from the rating, so there is nothing extra to
+maintain). Things you want to try there are listed separately. **Log a dish here** opens the log form with this
+place already chosen (`/log?place=<id>`), and **Open in Maps** opens Google Maps for it. A place you can't see
+(someone else's manual place) shows "Place not found"; row-level security does that, not the app.
+
 ## Scripts
 
 | Command | What it does |
@@ -143,7 +152,7 @@ dev server. Plain `http://<lan-ip>:5173` will not work for those features.
 2. Dish logging ✅ (place lookup needs the Google key above; manual entry works without it)
 3. Want-to-try and sharing in ✅
 4. Search and filters ✅
-5. Place page
+5. Place page ✅
 6. Map view
 7. Shareable lists and public page
 8. Polish

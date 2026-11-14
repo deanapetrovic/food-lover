@@ -56,7 +56,7 @@ describe('WantPage', () => {
     renderPage()
     expect(await screen.findByText('Pljeskavica')).toBeInTheDocument()
     expect(listDishes).toHaveBeenCalledWith({ status: 'want_to_try' })
-    expect(screen.getByText('Kafana Test · Belgrade')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Kafana Test' })).toHaveAttribute('href', '/place/p1')
   })
 
   it('links "Mark as tried" to the log form for that item', async () => {

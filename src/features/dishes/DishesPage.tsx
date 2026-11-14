@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { DishStatus } from '@/lib/database.types'
-import type { DishListItem } from '@/lib/repositories/dishes'
 import type { SortMode } from '@/lib/repositories/search'
 import { useCities, useSearchDishes } from './useSearch'
-import { usePhotoUrl } from './usePhotoUrl'
+import { DishRow } from './DishRow'
 
 type StatusFilter = DishStatus | 'all'
 
@@ -33,37 +32,6 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
       <span className="w-14 shrink-0 text-xs text-muted">{label}</span>
       {children}
     </div>
-  )
-}
-
-function DishRow({ dish }: { dish: DishListItem }) {
-  const url = usePhotoUrl(dish.photo_path)
-  return (
-    <li className="flex gap-3 rounded-2xl border border-line bg-surface p-3">
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-bg">
-        {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : (
-          <div className="grid h-full w-full place-items-center text-2xl" aria-hidden>🍽️</div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="truncate font-semibold">{dish.name}</h2>
-          {dish.rating != null ? (
-            <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-sm font-bold text-on-accent"
-              aria-label={`Rated ${dish.rating} out of 10`}>{dish.rating}</span>
-          ) : (
-            <span className="shrink-0 rounded-full border border-line px-2 py-0.5 text-xs text-muted">Want to try</span>
-          )}
-        </div>
-        <p className="truncate text-sm text-muted">
-          {dish.place?.name}{dish.place?.city ? ` · ${dish.place.city}` : ''}
-        </p>
-        {dish.tags.length > 0 && (
-          <p className="mt-1 truncate text-xs text-muted">{dish.tags.map((t) => `#${t}`).join(' ')}</p>
-        )}
-        <p className="mt-1 text-xs text-muted">{new Date(dish.eaten_at).toLocaleDateString()}</p>
-      </div>
-    </li>
   )
 }
 

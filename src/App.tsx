@@ -7,6 +7,7 @@ import { AppShell } from '@/components/AppShell'
 import { Placeholder } from '@/routes/Placeholder'
 import { DishesPage } from '@/features/dishes/DishesPage'
 import { LogDishPage } from '@/features/log/LogDishPage'
+import { PlacePage } from '@/features/places/PlacePage'
 import { WantPage } from '@/features/want/WantPage'
 import { AddWantPage, ShareRedirect } from '@/features/want/AddWantPage'
 
@@ -22,6 +23,7 @@ export function AppRoutes() {
           <Route path="want" element={<WantPage />} />
           <Route path="want/add" element={<AddWantPage />} />
           <Route path="share" element={<ShareRedirect />} />
+          <Route path="place/:id" element={<PlacePage />} />
           <Route path="map" element={<Placeholder title="Map" milestone="Milestone 6" />} />
           <Route path="lists" element={<Placeholder title="Lists" milestone="Milestone 7" />} />
           <Route path="log" element={<LogDishPage />} />

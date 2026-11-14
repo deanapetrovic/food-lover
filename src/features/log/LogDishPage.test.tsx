@@ -32,7 +32,11 @@ vi.mock('@/lib/repositories/dishes', async (orig) => ({
   getDish: (...a: unknown[]) => getDish(...a),
   listDishes: vi.fn().mockResolvedValue([]),
 }))
-vi.mock('@/lib/repositories/places', () => ({ savePlace: (...a: unknown[]) => savePlace(...a) }))
+const getPlace = vi.fn()
+vi.mock('@/lib/repositories/places', () => ({
+  savePlace: (...a: unknown[]) => savePlace(...a),
+  getPlace: (...a: unknown[]) => getPlace(...a),
+}))
 vi.mock('@/lib/image', () => ({ compressImage: vi.fn().mockResolvedValue(new Blob(['x'], { type: 'image/jpeg' })) }))
 vi.mock('@/lib/photos', () => ({
   uploadDishPhoto: (...a: unknown[]) => uploadDishPhoto(...a),
@@ -156,6 +160,27 @@ describe('logging a dish', () => {
     expect(savePlace).toHaveBeenCalledWith(
       expect.objectContaining({ provider: 'manual', name: 'Kafana Test', city: 'Belgrade' }),
     )
+  })
+
+  it('starts with the place chosen when opened from a place page', async () => {
+    getPlace.mockResolvedValue({
+      id: 'p-7', provider: 'google', external_place_id: 'g-7', name: 'Pekara Pistacchio', address: null,
+      city: 'Belgrade', country: 'RS', lat: 44.8, lng: 20.4, cuisine: 'Bakery',
+    })
+    const user = userEvent.setup()
+    renderPage('/log?place=p-7')
+
+    await waitFor(() => expect(screen.getByTestId('selected-place')).toHaveTextContent('Pekara Pistacchio'))
+    expect(getPlace).toHaveBeenCalledWith('p-7')
+
+    await user.type(screen.getByLabelText('Dish'), 'Burek')
+    await user.click(screen.getByRole('button', { name: 'Rate 8' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(createDish).toHaveBeenCalledTimes(1))
+    // The place already exists, so it is used as is, not saved again or swapped for the nearest one.
+    expect(savePlace).not.toHaveBeenCalled()
+    expect(createDish).toHaveBeenCalledWith(expect.objectContaining({ name: 'Burek', placeId: 'p-7', rating: 8 }))
   })
 
   it('converts a want-to-try item into a logged dish (same row, prefilled)', async () => {

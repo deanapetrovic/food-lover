@@ -9,6 +9,7 @@ import { createDish, markTried } from '@/lib/repositories/dishes'
 import { savePlace } from '@/lib/repositories/places'
 import { useGeolocation } from '@/lib/useGeolocation'
 import type { PlaceCandidate } from '@/lib/places'
+import { usePlace } from '@/features/places/usePlace'
 import { PlacePicker } from './PlacePicker'
 import { RatingPicker } from './RatingPicker'
 import { TagInput } from './TagInput'
@@ -38,6 +39,11 @@ export function LogDishPage() {
   const { data: source } = useDish(fromId)
   const prefilled = useRef(false)
 
+  // /log?place=<id> (from a place page) starts with that place already chosen.
+  const placeParam = fromId ? null : params.get('place')
+  const { data: preset } = usePlace(placeParam)
+  const presetApplied = useRef(false)
+
   const [photo, setPhoto] = useState<PickedPhoto | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [place, setPlace] = useState<PlaceCandidate | null>(null)
@@ -48,6 +54,16 @@ export function LogDishPage() {
   const previewRef = useRef<string | null>(null)
 
   useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current) }, [])
+
+  useEffect(() => {
+    if (!preset || presetApplied.current) return
+    presetApplied.current = true
+    setPlace({
+      provider: preset.provider, externalPlaceId: preset.external_place_id, name: preset.name,
+      address: preset.address, city: preset.city, country: preset.country, lat: preset.lat, lng: preset.lng,
+      cuisine: preset.cuisine, savedId: preset.id,
+    })
+  }, [preset])
 
   useEffect(() => {
     if (!source || prefilled.current) return

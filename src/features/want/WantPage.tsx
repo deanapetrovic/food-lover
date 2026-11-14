@@ -14,7 +14,10 @@ function WantRow({ dish, onRemove, removing }: { dish: DishWithPlace; onRemove: 
     <li className="rounded-2xl border border-line bg-surface p-4">
       <h2 className="font-semibold">{dish.name}</h2>
       {dish.place && (
-        <p className="text-sm text-muted">{dish.place.name}{dish.place.city ? ` · ${dish.place.city}` : ''}</p>
+        <p className="text-sm text-muted">
+          <Link to={`/place/${dish.place.id}`} className="underline-offset-2 hover:underline">{dish.place.name}</Link>
+          {dish.place.city ? ` · ${dish.place.city}` : ''}
+        </p>
       )}
       {dish.source_url && isHttpUrl(dish.source_url) && (
         <a href={dish.source_url} target="_blank" rel="noopener noreferrer"
