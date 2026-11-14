@@ -131,6 +131,22 @@ maintain). Things you want to try there are listed separately. **Log a dish here
 place already chosen (`/log?place=<id>`), and **Open in Maps** opens Google Maps for it. A place you can't see
 (someone else's manual place) shows "Place not found"; row-level security does that, not the app.
 
+## Map (Milestone 6)
+
+The **Map** tab pins your places on an OpenStreetMap map (Leaflet, no API key). One pin per place:
+a **filled blue circle with your best rating** for places you've tried, an **outlined circle** for want-to-try
+only. Nearby pins merge into a **white square with a count**; tap it to zoom in. Tap a pin for a card (dishes
+tried, best dish, link to the place page). Chips filter *All / Tried / Want to try*, and **Near me** centres the
+map on you (the browser asks for permission; needs HTTPS or localhost).
+
+- Only places with coordinates can be pinned. Places found through Google have them; places added **by name**
+  don't, and the page tells you how many are missing. (A later improvement could geocode those.)
+- `MapView` (`src/features/map/MapView.tsx`) is the only file that knows about Leaflet. To use Google Maps or
+  MapLibre instead, replace that one component; the page just passes it markers.
+- OSM's free tile server is meant for light use (see its tile usage policy). For heavy traffic, change
+  `TILE_URL` in `MapView.tsx` to a hosted provider (MapTiler, Stadia, etc.).
+- The map code loads only when you open the tab, so it doesn't slow down the rest of the app.
+
 ## Scripts
 
 | Command | What it does |
@@ -153,6 +169,6 @@ dev server. Plain `http://<lan-ip>:5173` will not work for those features.
 3. Want-to-try and sharing in ✅
 4. Search and filters ✅
 5. Place page ✅
-6. Map view
+6. Map view ✅
 7. Shareable lists and public page
 8. Polish
