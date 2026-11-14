@@ -21,6 +21,12 @@ export default defineConfig({
         background_color: '#fffaf5',
         display: 'standalone',
         start_url: '/',
+        // Android Chrome lists the installed app in the share sheet; iOS Safari ignores this.
+        share_target: {
+          action: '/share',
+          method: 'GET',
+          params: { title: 'title', text: 'text', url: 'url' },
+        },
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],

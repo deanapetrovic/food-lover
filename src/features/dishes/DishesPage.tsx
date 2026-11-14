@@ -34,7 +34,7 @@ function DishRow({ dish }: { dish: DishWithPlace }) {
 }
 
 export function DishesPage() {
-  const { data, isLoading, error } = useDishes()
+  const { data, isLoading, error } = useDishes('tried')
 
   return (
     <section className="p-4">

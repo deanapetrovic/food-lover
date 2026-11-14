@@ -83,6 +83,30 @@ or in the dashboard: Edge Functions → Secrets → add `GOOGLE_PLACES_API_KEY`.
 **Deploy the function:** `supabase functions deploy places-nearby --project-ref <ref>`
 (JWT verification stays on, so only signed-in users can call it).
 
+## Want-to-try and sharing in (Milestone 3)
+
+The **Want** tab holds things you haven't tried yet. Each one is a dish row with `status = want_to_try`
+(no rating needed; place and link optional). Ways to add:
+
+- **Add manually**: name, optional link, optional place, note and tags.
+- **Paste a link** (works everywhere, including iOS): copy a link in Instagram/TikTok/Maps, open the
+  Want tab, tap *Paste a link*. The app reads the clipboard only when you tap.
+- **Share sheet (Android Chrome, installed PWA only)**: the web manifest registers a Web Share Target
+  (`/share`), so *Share → Dish Memory* opens the add screen. **iOS Safari does not support share targets
+  for web apps**; use *Paste a link*. (An iOS Shortcut that opens `https://<your-app>/want/add?url=…`
+  also works.) Reinstall the PWA after updating so Android picks up the manifest change.
+
+The `resolve-link` Edge Function (`supabase/functions/resolve-link`) fetches the page and returns its
+title/description. It is best-effort: Instagram and TikTok often block previews, in which case you just type
+the name. From the link we guess a place (Google Maps links carry the name; otherwise the page title) and
+pre-fill the place search, but **nothing is chosen until you tap it**. Because the function fetches
+user-supplied URLs it blocks private/internal addresses (SSRF), follows at most 4 redirects, and caps
+time and size. Deploy it with `supabase functions deploy resolve-link --project-ref <ref>`; it needs no secrets.
+
+**Mark as tried** opens the log form prefilled from the saved item (`/log?from=<id>`); saving converts the
+same row to `tried`, keeping its link and place. Saved links must be `http(s)` (also enforced by a database
+constraint).
+
 ## Scripts
 
 | Command | What it does |
@@ -102,7 +126,7 @@ dev server. Plain `http://<lan-ip>:5173` will not work for those features.
 0. Setup and auth ✅
 1. Data model and RLS ✅ (applied to the hosted dev project; RLS tests pass)
 2. Dish logging ✅ (place lookup needs the Google key above; manual entry works without it)
-3. Want-to-try and sharing in
+3. Want-to-try and sharing in ✅
 4. Search and filters
 5. Place page
 6. Map view

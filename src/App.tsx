@@ -7,6 +7,8 @@ import { AppShell } from '@/components/AppShell'
 import { Placeholder } from '@/routes/Placeholder'
 import { DishesPage } from '@/features/dishes/DishesPage'
 import { LogDishPage } from '@/features/log/LogDishPage'
+import { WantPage } from '@/features/want/WantPage'
+import { AddWantPage, ShareRedirect } from '@/features/want/AddWantPage'
 
 const queryClient = new QueryClient()
 
@@ -17,7 +19,9 @@ export function AppRoutes() {
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route index element={<DishesPage />} />
-          <Route path="want" element={<Placeholder title="Want to try" milestone="Milestone 3" />} />
+          <Route path="want" element={<WantPage />} />
+          <Route path="want/add" element={<AddWantPage />} />
+          <Route path="share" element={<ShareRedirect />} />
           <Route path="map" element={<Placeholder title="Map" milestone="Milestone 6" />} />
           <Route path="lists" element={<Placeholder title="Lists" milestone="Milestone 7" />} />
           <Route path="log" element={<LogDishPage />} />

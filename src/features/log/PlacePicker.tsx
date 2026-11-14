@@ -7,17 +7,29 @@ interface Props {
   geoStatus: 'pending' | 'ready' | 'denied' | 'unavailable'
   selected: PlaceCandidate | null
   onSelect: (p: PlaceCandidate) => void
+  /** Suggest (and pre-select) places near the user. Off for want-to-try, where you're not there yet. */
+  nearby?: boolean
+  label?: string
+  /** Pre-fills the search box, e.g. a place name guessed from a shared link. */
+  initialQuery?: string
 }
 
 const same = (a: PlaceCandidate | null, b: PlaceCandidate) =>
   a != null && a.provider === b.provider && a.externalPlaceId === b.externalPlaceId && a.name === b.name
 
-export function PlacePicker({ coords, geoStatus, selected, onSelect }: Props) {
-  const [search, setSearch] = useState('')
-  const [debounced, setDebounced] = useState('')
+export function PlacePicker({
+  coords, geoStatus, selected, onSelect, nearby: nearbyMode = true, label = 'Where did you eat?', initialQuery,
+}: Props) {
+  const [search, setSearch] = useState(initialQuery ?? '')
+  const [debounced, setDebounced] = useState((initialQuery ?? '').trim())
   const [manualOpen, setManualOpen] = useState(false)
   const [manualName, setManualName] = useState('')
   const [manualCity, setManualCity] = useState('')
+
+  // A guess can arrive after the picker mounted (the link is still being read).
+  useEffect(() => {
+    if (initialQuery) setSearch((s) => s || initialQuery)
+  }, [initialQuery])
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(search.trim()), 350)
@@ -25,10 +37,10 @@ export function PlacePicker({ coords, geoStatus, selected, onSelect }: Props) {
   }, [search])
 
   const searching = debounced.length >= 2
-  const nearby = useQuery({
+  const nearbyQuery = useQuery({
     queryKey: ['places', 'nearby', coords?.lat, coords?.lng],
     queryFn: () => placesProvider.nearby(coords as Coords),
-    enabled: coords != null && !searching,
+    enabled: nearbyMode && coords != null && !searching,
     staleTime: 60_000,
     retry: false,
   })
@@ -40,21 +52,21 @@ export function PlacePicker({ coords, geoStatus, selected, onSelect }: Props) {
     retry: false,
   })
 
-  const active = searching ? found : nearby
+  const active = searching ? found : nearbyQuery
   const candidates = active.data ?? []
 
   // Pre-select the closest suggestion so the common case needs zero taps.
-  const first = nearby.data?.[0]
+  const first = nearbyQuery.data?.[0]
   useEffect(() => {
-    if (!selected && first && !searching) onSelect(first)
-  }, [first, selected, searching, onSelect])
+    if (nearbyMode && !selected && first && !searching) onSelect(first)
+  }, [nearbyMode, first, selected, searching, onSelect])
 
   const lookupFailed = active.isError
-  const showManualByDefault = lookupFailed || geoStatus === 'denied' || geoStatus === 'unavailable'
+  const showManualByDefault = lookupFailed || (nearbyMode && (geoStatus === 'denied' || geoStatus === 'unavailable'))
 
   return (
     <fieldset>
-      <legend className="mb-1 text-sm font-medium">Where did you eat?</legend>
+      <legend className="mb-1 text-sm font-medium">{label}</legend>
 
       {selected && (
         <p className="mb-2 rounded-xl border border-accent bg-surface p-3 text-sm" data-testid="selected-place">
@@ -63,8 +75,10 @@ export function PlacePicker({ coords, geoStatus, selected, onSelect }: Props) {
         </p>
       )}
 
-      {geoStatus === 'pending' && !searching && <p className="text-sm text-muted">Finding places near you…</p>}
-      {geoStatus === 'denied' && (
+      {nearbyMode && geoStatus === 'pending' && !searching && (
+        <p className="text-sm text-muted">Finding places near you…</p>
+      )}
+      {nearbyMode && geoStatus === 'denied' && (
         <p className="text-sm text-muted">Location is off, so search for the place instead.</p>
       )}
       {lookupFailed && (

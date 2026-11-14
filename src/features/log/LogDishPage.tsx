@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { useDishes, dishesKey } from '@/features/dishes/useDishes'
+import { useDish, useDishes, dishesKey } from '@/features/dishes/useDishes'
 import { compressImage } from '@/lib/image'
 import { uploadDishPhoto } from '@/lib/photos'
-import { createDish } from '@/lib/repositories/dishes'
+import { createDish, markTried } from '@/lib/repositories/dishes'
 import { savePlace } from '@/lib/repositories/places'
 import { useGeolocation } from '@/lib/useGeolocation'
 import type { PlaceCandidate } from '@/lib/places'
@@ -30,7 +30,13 @@ export function LogDishPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const geo = useGeolocation()
-  const { data: existing } = useDishes()
+  const { data: existing } = useDishes('tried')
+
+  // /log?from=<id> converts a want-to-try item into a logged dish (same row, prefilled).
+  const [params] = useSearchParams()
+  const fromId = params.get('from')
+  const { data: source } = useDish(fromId)
+  const prefilled = useRef(false)
 
   const [photo, setPhoto] = useState<PickedPhoto | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
@@ -42,6 +48,21 @@ export function LogDishPage() {
   const previewRef = useRef<string | null>(null)
 
   useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current) }, [])
+
+  useEffect(() => {
+    if (!source || prefilled.current) return
+    prefilled.current = true
+    setName(source.name)
+    setNote(source.note ?? '')
+    setTags(source.tags)
+    if (source.place) {
+      setPlace({
+        provider: 'saved', externalPlaceId: null, name: source.place.name, address: null,
+        city: source.place.city, country: null, lat: source.place.lat, lng: source.place.lng,
+        cuisine: source.place.cuisine, savedId: source.place.id,
+      })
+    }
+  }, [source])
 
   const nameSuggestions = useMemo(() => topBy((existing ?? []).map((d) => d.name), 20), [existing])
   const tagSuggestions = useMemo(() => topBy((existing ?? []).flatMap((d) => d.tags), 6), [existing])
@@ -76,8 +97,9 @@ export function LogDishPage() {
           throw new Error('The photo didn’t upload. Remove it or pick it again, then save.')
         }
       }
-      const placeId = await savePlace(place)
-      return createDish({ name, placeId, rating, note, tags, photoPath })
+      const placeId = place.savedId ?? (await savePlace(place))
+      const dish = { name, placeId, rating, note, tags, photoPath }
+      return fromId ? markTried(fromId, dish) : createDish(dish)
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: dishesKey })
@@ -89,7 +111,7 @@ export function LogDishPage() {
 
   return (
     <form className="space-y-5 p-4" onSubmit={(e) => { e.preventDefault(); if (canSave) save.mutate() }}>
-      <h1 className="text-2xl font-bold">Log a dish</h1>
+      <h1 className="text-2xl font-bold">{fromId ? 'Mark as tried' : 'Log a dish'}</h1>
 
       {/* Photo first: one tap opens the camera on phones, the file picker on desktop. */}
       {photo ? (

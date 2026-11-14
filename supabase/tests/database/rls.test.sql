@@ -61,6 +61,30 @@ select throws_ok(
 select is((select count(*) from public.dishes)::int, 2, 'user A sees their 2 dishes');
 select is((select count(*) from public.places)::int, 2, 'user A sees the google place and their manual place');
 
+-- Shared links must be http(s): the app renders them as clickable hrefs.
+select lives_ok(
+  $$ update public.dishes set source_url = 'https://www.instagram.com/p/abc' where name = 'Pljeskavica' $$,
+  'a want-to-try can carry an https source link');
+select throws_ok(
+  $$ update public.dishes set source_url = 'javascript:alert(1)' where name = 'Pljeskavica' $$,
+  '23514', null, 'a javascript: source link is rejected');
+select throws_ok(
+  $$ update public.dishes set source_url = 'data:text/html,hi' where name = 'Pljeskavica' $$,
+  '23514', null, 'a data: source link is rejected');
+
+-- Marking as tried converts the same row and then enforces place + rating.
+select throws_ok(
+  $$ update public.dishes set status = 'tried' where name = 'Pljeskavica' $$,
+  '23514', null, 'a want-to-try cannot become tried without a place and rating');
+select lives_ok(
+  $$ update public.dishes
+        set status = 'tried', rating = 8,
+            place_id = (select id from public.places where external_place_id = 'g-1')
+      where name = 'Pljeskavica' $$,
+  'a want-to-try becomes tried once it has a place and rating');
+select is((select count(*) from public.dishes where name = 'Pljeskavica')::int, 1,
+  'marking as tried keeps a single row');
+
 select lives_ok(
   $$ insert into public.lists (title) values ('Best grill') $$,
   'user can create a list');

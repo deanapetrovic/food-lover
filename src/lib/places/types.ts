@@ -14,6 +14,8 @@ export interface PlaceCandidate {
   lat: number | null
   lng: number | null
   cuisine: string | null
+  /** Set when this place already exists in our database, so it needn't be saved again. */
+  savedId?: string
 }
 
 /** Swappable place lookup (Google today; Foursquare/OSM later). */

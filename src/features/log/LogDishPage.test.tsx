@@ -15,6 +15,8 @@ const nearby = vi.fn()
 const createDish = vi.fn()
 const savePlace = vi.fn()
 const uploadDishPhoto = vi.fn()
+const markTried = vi.fn()
+const getDish = vi.fn()
 
 vi.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({ session: { user: { id: 'user-1', email: 'm@example.com' } }, loading: false }),
@@ -26,6 +28,8 @@ vi.mock('@/lib/places', async (orig) => ({
 vi.mock('@/lib/repositories/dishes', async (orig) => ({
   ...(await orig<typeof import('@/lib/repositories/dishes')>()),
   createDish: (...a: unknown[]) => createDish(...a),
+  markTried: (...a: unknown[]) => markTried(...a),
+  getDish: (...a: unknown[]) => getDish(...a),
   listDishes: vi.fn().mockResolvedValue([]),
 }))
 vi.mock('@/lib/repositories/places', () => ({ savePlace: (...a: unknown[]) => savePlace(...a) }))
@@ -37,11 +41,11 @@ vi.mock('@/lib/photos', () => ({
 
 import { LogDishPage } from './LogDishPage'
 
-function renderPage() {
+function renderPage(entry = '/log') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/log']}>
+      <MemoryRouter initialEntries={[entry]}>
         <Routes>
           <Route path="/log" element={<LogDishPage />} />
           <Route path="/" element={<p>HOME</p>} />
@@ -56,6 +60,7 @@ beforeEach(() => {
   nearby.mockResolvedValue([candidate, other])
   savePlace.mockResolvedValue('place-1')
   createDish.mockResolvedValue({ id: 'dish-1' })
+  markTried.mockResolvedValue({ id: 'w1' })
   uploadDishPhoto.mockResolvedValue('user-1/photo.jpg')
   URL.createObjectURL = vi.fn(() => 'blob:preview')
   URL.revokeObjectURL = vi.fn()
@@ -151,6 +156,32 @@ describe('logging a dish', () => {
     expect(savePlace).toHaveBeenCalledWith(
       expect.objectContaining({ provider: 'manual', name: 'Kafana Test', city: 'Belgrade' }),
     )
+  })
+
+  it('converts a want-to-try item into a logged dish (same row, prefilled)', async () => {
+    getDish.mockResolvedValue({
+      id: 'w1', name: 'Pljeskavica', note: 'from a reel', tags: ['grill'], status: 'want_to_try',
+      place: { id: 'p-9', name: 'Kafana Test', city: 'Belgrade', cuisine: null, lat: null, lng: null },
+    })
+    const user = userEvent.setup()
+    renderPage('/log?from=w1')
+
+    expect(await screen.findByRole('heading', { name: 'Mark as tried' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText('Dish')).toHaveValue('Pljeskavica'))
+    await waitFor(() => expect(screen.getByTestId('selected-place')).toHaveTextContent('Kafana Test'))
+    expect(getDish).toHaveBeenCalledWith('w1')
+
+    await user.click(screen.getByRole('button', { name: 'Rate 8' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(markTried).toHaveBeenCalledTimes(1))
+    expect(markTried).toHaveBeenCalledWith('w1', {
+      name: 'Pljeskavica', placeId: 'p-9', rating: 8, note: 'from a reel', tags: ['grill'], photoPath: null,
+    })
+    // The place already exists, and this must update the row, not create a second dish.
+    expect(savePlace).not.toHaveBeenCalled()
+    expect(createDish).not.toHaveBeenCalled()
+    expect(await screen.findByText('HOME')).toBeInTheDocument()
   })
 
   it('does not save the dish if the photo failed to upload', async () => {
