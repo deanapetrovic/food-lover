@@ -94,7 +94,7 @@ export function AddWantPage() {
           <button type="button" onClick={paste}
             className="rounded-xl border border-line bg-surface px-3 text-sm font-medium">Paste</button>
         </div>
-        {urlInvalid && <p role="alert" className="mt-1 text-sm text-red-600">Links must start with http:// or https://</p>}
+        {urlInvalid && <p role="alert" className="mt-1 text-sm text-danger">Links must start with http:// or https://</p>}
         {readState === 'loading' && <p className="mt-1 text-sm text-muted">Reading the link…</p>}
         {readState === 'failed' && (
           <p className="mt-1 text-sm text-muted">Couldn’t read that link (some apps block previews). You can still save it.</p>
@@ -131,7 +131,7 @@ export function AddWantPage() {
         </div>
       </details>
 
-      {save.error && <p role="alert" className="text-sm text-red-600">{(save.error as Error).message}</p>}
+      {save.error && <p role="alert" className="text-sm text-danger">{(save.error as Error).message}</p>}
 
       <button type="submit" disabled={!canSave}
         className="w-full rounded-2xl bg-accent py-4 text-lg font-bold text-on-accent disabled:opacity-40">

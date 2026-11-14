@@ -69,8 +69,8 @@ export function WantPage() {
       {pasteHint && <p role="status" className="mb-3 text-sm text-muted">{pasteHint}</p>}
 
       {isLoading && <p className="text-muted">Loading…</p>}
-      {error && <p role="alert" className="text-red-600">Couldn’t load your list. {(error as Error).message}</p>}
-      {remove.error && <p role="alert" className="text-red-600">{(remove.error as Error).message}</p>}
+      {error && <p role="alert" className="text-danger">Couldn’t load your list. {(error as Error).message}</p>}
+      {remove.error && <p role="alert" className="text-danger">{(remove.error as Error).message}</p>}
 
       {data && data.length === 0 && (
         <div className="mt-8 text-center">

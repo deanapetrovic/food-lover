@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Dish Memory',
         short_name: 'Dishes',
         description: 'Your personal, dish-level food memory.',
-        theme_color: '#c2410c',
-        background_color: '#fffaf5',
+        theme_color: '#f2f2f7',
+        background_color: '#f2f2f7',
         display: 'standalone',
         start_url: '/',
         // Android Chrome lists the installed app in the share sheet; iOS Safari ignores this.

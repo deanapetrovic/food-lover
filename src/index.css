@@ -3,23 +3,26 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  --bg: #fffaf5;
+  /* iOS system colors (light): systemGroupedBackground, secondarySystemGroupedBackground,
+     label, secondaryLabel, separator, systemBlue, systemRed */
+  --bg: #f2f2f7;
   --surface: #ffffff;
-  --text: #1c1917;
-  --muted: #78716c;
-  --border: #e7e5e4;
-  --accent: #c2410c;
+  --text: #000000;
+  --muted: #8a8a8e;
+  --border: #c6c6c8;
+  --accent: #007aff;
   --accent-text: #ffffff;
+  --danger: #ff3b30;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1c1917; --surface: #292524; --text: #fafaf9; --muted: #a8a29e;
-    --border: #44403c; --accent: #fb923c; --accent-text: #1c1917;
+    --bg: #000000; --surface: #1c1c1e; --text: #ffffff; --muted: #98989d;
+    --border: #38383a; --accent: #0a84ff; --accent-text: #ffffff; --danger: #ff453a;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1c1917; --surface: #292524; --text: #fafaf9; --muted: #a8a29e;
-  --border: #44403c; --accent: #fb923c; --accent-text: #1c1917;
+  --bg: #000000; --surface: #1c1c1e; --text: #ffffff; --muted: #98989d;
+  --border: #38383a; --accent: #0a84ff; --accent-text: #ffffff; --danger: #ff453a;
 }
 
 @theme inline {
@@ -30,6 +33,7 @@
   --color-line: var(--border);
   --color-accent: var(--accent);
   --color-on-accent: var(--accent-text);
+  --color-danger: var(--danger);
 }
 
 html, body, #root { height: 100%; }

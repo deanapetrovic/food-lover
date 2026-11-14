@@ -136,7 +136,7 @@ export function LogDishPage() {
           </label>
         </div>
       )}
-      {photoError && <p role="alert" className="text-sm text-red-600">{photoError}</p>}
+      {photoError && <p role="alert" className="text-sm text-danger">{photoError}</p>}
 
       <PlacePicker coords={geo.coords} geoStatus={geo.status} selected={place} onSelect={setPlace} />
 
@@ -166,7 +166,7 @@ export function LogDishPage() {
         </div>
       </details>
 
-      {save.error && <p role="alert" className="text-sm text-red-600">{(save.error as Error).message}</p>}
+      {save.error && <p role="alert" className="text-sm text-danger">{(save.error as Error).message}</p>}
 
       <button type="submit" disabled={!canSave}
         className="w-full rounded-2xl bg-accent py-4 text-lg font-bold text-on-accent disabled:opacity-40">
