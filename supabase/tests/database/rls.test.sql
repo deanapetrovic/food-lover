@@ -85,6 +85,37 @@ select lives_ok(
 select is((select count(*) from public.dishes where name = 'Pljeskavica')::int, 1,
   'marking as tried keeps a single row');
 
+-- ------------------------------------------------------------------ search (M4)
+-- Fixtures so far: 'Ćevapi' (9, #grill) and 'Pljeskavica' (8), both at 'Ćevap Test', Belgrade, balkan.
+select is((select count(*) from public.search_dishes('cevapi'))::int, 1,
+  'searching without accents finds an accented dish name');
+select is((select count(*) from public.search_dishes('ĆEVAPI'))::int, 1,
+  'search ignores case and accepts accents');
+select is((select count(*) from public.search_dishes('cevap'))::int, 2,
+  'search also matches the place name');
+select is((select count(*) from public.search_dishes('cevapi grill'))::int, 1,
+  'every word must match (AND), across name and tags');
+select is((select count(*) from public.search_dishes('cevapi sushi'))::int, 0,
+  'a word that matches nothing excludes the dish');
+select is((select count(*) from public.search_dishes('#grill'))::int, 1, 'search matches tags, with or without #');
+select is((select count(*) from public.search_dishes('belgrade'))::int, 2, 'search matches the city');
+select is((select count(*) from public.search_dishes('balkan'))::int, 2, 'search matches the cuisine');
+select is((select count(*) from public.search_dishes('%'))::int, 0, 'LIKE wildcards in the query are matched literally');
+select is((select count(*) from public.search_dishes('_'))::int, 0, 'underscore in the query is matched literally');
+select is((select count(*) from public.search_dishes())::int, 2, 'no query and no filters returns everything');
+select is((select count(*) from public.search_dishes(p_min_rating => 9))::int, 1, 'min rating 9 keeps only the 9');
+select is((select count(*) from public.search_dishes(p_min_rating => 10))::int, 0, 'min rating 10 keeps nothing');
+select is((select count(*) from public.search_dishes(p_city => 'BELGRADE'))::int, 2, 'city filter ignores case');
+select is((select count(*) from public.search_dishes(p_city => 'Novi Sad'))::int, 0, 'city filter excludes other cities');
+select is((select count(*) from public.search_dishes(p_status => 'tried'))::int, 2, 'status filter: tried');
+select is((select count(*) from public.search_dishes(p_status => 'want_to_try'))::int, 0, 'status filter: want-to-try');
+select is((select count(*) from public.search_dishes('cevap', 8, 'belgrade', 'tried'))::int, 2,
+  'query, rating, city and status filters combine');
+select is((select array_agg(name) from public.search_dishes(p_sort => 'best')), array['Ćevapi', 'Pljeskavica'],
+  'sort=best lists the highest rated first');
+select is((select array_agg(c) from public.list_my_cities() c), array['Belgrade'],
+  'list_my_cities returns the cities the user has dishes in');
+
 select lives_ok(
   $$ insert into public.lists (title) values ('Best grill') $$,
   'user can create a list');
@@ -121,6 +152,9 @@ select is((select count(*) from public.dishes)::int,     0, 'user B cannot see A
 select is((select count(*) from public.lists)::int,      0, 'user B cannot see A''s lists');
 select is((select count(*) from public.list_items)::int, 0, 'user B cannot see A''s list items');
 select is((select count(*) from public.places)::int,     1, 'user B sees the shared google place but not A''s manual place');
+select is((select count(*) from public.search_dishes('cevapi'))::int, 0, 'user B cannot find A''s dishes by searching');
+select is((select count(*) from public.search_dishes())::int, 0, 'user B''s unfiltered search is empty');
+select is((select count(*) from public.list_my_cities())::int, 0, 'user B sees none of A''s cities');
 
 select throws_ok(
   $$ insert into public.list_items (list_id, dish_id)
@@ -163,6 +197,8 @@ select throws_ok($$ select * from public.list_items $$, '42501', null, 'anon can
 select throws_ok(
   $$ select public.upsert_place('google', 'g-2', 'Anon place') $$,
   '42501', null, 'anon cannot call upsert_place');
+select throws_ok($$ select * from public.search_dishes('x') $$, '42501', null, 'anon cannot call search_dishes');
+select throws_ok($$ select * from public.list_my_cities() $$, '42501', null, 'anon cannot call list_my_cities');
 select is((select count(*) from storage.objects where bucket_id = 'dish-photos')::int, 0,
   'anon cannot see dish photos');
 

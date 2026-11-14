@@ -107,6 +107,21 @@ time and size. Deploy it with `supabase functions deploy resolve-link --project-
 same row to `tried`, keeping its link and place. Saved links must be `http(s)` (also enforced by a database
 constraint).
 
+## Search and filters (Milestone 4)
+
+The **Dishes** tab is also the search screen: one box that looks across dish name, note, tags, place name,
+city and cuisine, plus chips for *Tried / Want to try / All*, rating (7+ / 8+ / 9+), your cities, and sort
+(*Top rated* / *Newest*; it ranks by rating automatically once you type). "Best ćevapi in Belgrade" is:
+type `cevapi`, tap `8+`, tap `Belgrade`.
+
+It runs in Postgres (`search_dishes` and `list_my_cities`, migration `…000005_search.sql`):
+- Accent- and case-insensitive: `cevapi` finds `Ćevapi`, `BELGRADE` finds `Belgrade`.
+- Every word must match somewhere (`cevapi grill` needs both); `#grill` and `grill` are the same word.
+- `%` and `_` are matched literally. The functions are `SECURITY INVOKER`, so row-level security still
+  limits results to the signed-in user's own dishes; signed-out visitors can't call them.
+- It scans one user's dishes, which is fine for thousands of dishes. If it ever feels slow, add a
+  generated search column with a trigram/GIN index (the M1 trigram indexes are a start).
+
 ## Scripts
 
 | Command | What it does |
@@ -127,7 +142,7 @@ dev server. Plain `http://<lan-ip>:5173` will not work for those features.
 1. Data model and RLS ✅ (applied to the hosted dev project; RLS tests pass)
 2. Dish logging ✅ (place lookup needs the Google key above; manual entry works without it)
 3. Want-to-try and sharing in ✅
-4. Search and filters
+4. Search and filters ✅
 5. Place page
 6. Map view
 7. Shareable lists and public page

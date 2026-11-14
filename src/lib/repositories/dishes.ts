@@ -6,7 +6,15 @@ export type DishWithPlace = Dish & {
   place: Pick<Place, 'id' | 'name' | 'city' | 'cuisine' | 'lat' | 'lng'> | null
 }
 
-const WITH_PLACE = '*, place:places(id, name, city, cuisine, lat, lng)'
+/** What list screens need from a dish (search returns exactly this; DishWithPlace is a superset). */
+export type DishListItem = Pick<
+  Dish,
+  'id' | 'name' | 'rating' | 'note' | 'tags' | 'photo_path' | 'eaten_at' | 'status' | 'source_url' | 'place_id'
+> & {
+  place: Pick<Place, 'id' | 'name' | 'city' | 'cuisine' | 'lat' | 'lng'> | null
+}
+
+const WITH_PLACE ='*, place:places(id, name, city, cuisine, lat, lng)'
 
 export interface NewDish {
   name: string

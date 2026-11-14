@@ -250,6 +250,33 @@ export type Database = {
     }
     Functions: {
       get_public_list: { Args: { p_slug: string }; Returns: Json }
+      list_my_cities: { Args: never; Returns: string[] }
+      search_dishes: {
+        Args: {
+          p_city?: string
+          p_min_rating?: number
+          p_q?: string
+          p_sort?: string
+          p_status?: Database['public']['Enums']['dish_status']
+        }
+        Returns: {
+          eaten_at: string
+          id: string
+          name: string
+          note: string | null
+          photo_path: string | null
+          place_city: string | null
+          place_cuisine: string | null
+          place_id: string | null
+          place_lat: number | null
+          place_lng: number | null
+          place_name: string | null
+          rating: number | null
+          source_url: string | null
+          status: Database['public']['Enums']['dish_status']
+          tags: string[]
+        }[]
+      }
       upsert_place: {
         Args: {
           p_address?: string
