@@ -9,7 +9,7 @@ export function LoginPage() {
   const { session } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup'>('signup') // opens on "Sign up"; "Have an account? Sign in" switches
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -54,7 +54,7 @@ export function LoginPage() {
           value={email} onChange={(e) => setEmail(e.target.value)} />
         <input className={field} type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
           placeholder="Password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button className={primary} disabled={busy}>{mode === 'signin' ? 'Sign in' : 'Create account'}</button>
+        <button className={primary} disabled={busy}>{mode === 'signin' ? 'Sign in' : 'Sign up'}</button>
         <button type="button" className="text-sm text-muted underline"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
           {mode === 'signin' ? 'New here? Create an account' : 'Have an account? Sign in'}
