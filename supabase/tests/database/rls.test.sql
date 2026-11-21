@@ -15,6 +15,10 @@ select is(
     where id in ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'))::int,
   2, 'a profile is created automatically for each new user');
 
+-- Shared lists show the owner's display name publicly, so it must never be derived from the email.
+select is((select display_name from public.profiles where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), null,
+  'an email sign-up starts with no display name (not the email)');
+
 -- =============================================================== user A
 set local role authenticated;
 select set_config('request.jwt.claims',

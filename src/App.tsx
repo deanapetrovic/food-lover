@@ -5,10 +5,12 @@ import { AuthProvider } from '@/features/auth/AuthProvider'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { AppShell } from '@/components/AppShell'
-import { Placeholder } from '@/routes/Placeholder'
 import { DishesPage } from '@/features/dishes/DishesPage'
 import { LogDishPage } from '@/features/log/LogDishPage'
 import { PlacePage } from '@/features/places/PlacePage'
+import { ListsPage } from '@/features/lists/ListsPage'
+import { ListDetailPage } from '@/features/lists/ListDetailPage'
+import { PublicListPage } from '@/features/lists/PublicListPage'
 import { WantPage } from '@/features/want/WantPage'
 import { AddWantPage, ShareRedirect } from '@/features/want/AddWantPage'
 
@@ -21,6 +23,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {/* Public, read-only shared list: no sign-in, outside the app shell. */}
+      <Route path="/l/:slug" element={<PublicListPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route index element={<DishesPage />} />
@@ -29,7 +33,8 @@ export function AppRoutes() {
           <Route path="share" element={<ShareRedirect />} />
           <Route path="place/:id" element={<PlacePage />} />
           <Route path="map" element={<Suspense fallback={<p className="p-4 text-muted">Loading map…</p>}><MapPage /></Suspense>} />
-          <Route path="lists" element={<Placeholder title="Lists" milestone="Milestone 7" />} />
+          <Route path="lists" element={<ListsPage />} />
+          <Route path="lists/:id" element={<ListDetailPage />} />
           <Route path="log" element={<LogDishPage />} />
         </Route>
       </Route>

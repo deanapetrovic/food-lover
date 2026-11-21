@@ -147,6 +147,38 @@ map on you (the browser asks for permission; needs HTTPS or localhost).
   `TILE_URL` in `MapView.tsx` to a hosted provider (MapTiler, Stadia, etc.).
 - The map code loads only when you open the tab, so it doesn't slow down the rest of the app.
 
+## Shareable lists (Milestone 7)
+
+**Lists tab:** create a list (for example “Best ćevapi in Belgrade”), add dishes from your log with the search
+box, reorder with ↑/↓, rename or delete. Turn on **Share with a link** to get `https://<your-site>/l/<slug>`.
+Anyone can open it signed out, with nothing to install; they get a read-only page with each dish's photo,
+rating, note, tags and a link to its place on a map. Turn sharing off and the link stops working immediately.
+Turning it on again creates a **new** link, so an old one never comes back to life.
+
+**What a visitor can see:** dish names, ratings, notes, tags, place names/addresses, photos, and the list's
+title and description, plus an optional name you choose in the share panel (“Your name on shared lists”).
+It is blank until you set it and is **never taken from your email**. They never see your email, user id,
+or any dish that isn't on the list. Shared pages are marked `noindex` so search engines skip them.
+Check your notes before sharing: they are public on the page.
+
+**How it works**
+- The page reads through the database function `get_public_list(slug)` (runs for signed-out visitors, only
+  ever returns a list that is currently public; there is no other anonymous access to your tables).
+- Photos are private, so the page asks the **`public-list-photos`** Edge Function for 1-hour signed links.
+  It only signs photos of dishes in a list that is public right now, and answers the same empty reply for
+  unknown, private and malformed links. It uses the service role that Supabase gives every Edge Function, so
+  there is nothing to configure and no secret in Vercel. Deploy:
+  `supabase functions deploy public-list-photos --project-ref <ref> --no-verify-jwt`
+- **Link previews** (WhatsApp, iMessage, Slack, Telegram, X...): those apps fetch the link without running
+  JavaScript, so `vercel.json` sends `/l/<slug>` to a Vercel Function (`api/og-list.ts`) **only for known
+  preview bots**; people get the normal app. It returns the title and a one-line summary as Open Graph tags,
+  reads the same public database function with the public anon key, and returns a bare 404 for anything private
+  or unknown. It uses the two env vars the app already needs (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
+  **It only goes live after you redeploy to Vercel.** There is no preview image yet (photos are private).
+- If your Vercel project has **Deployment Protection** on, signed-out visitors and preview bots hit a Vercel
+  login instead of your page. Turn it off for production (Project → Settings → Deployment Protection) so
+  shared links work for everyone.
+
 ## Scripts
 
 | Command | What it does |
@@ -170,5 +202,5 @@ dev server. Plain `http://<lan-ip>:5173` will not work for those features.
 4. Search and filters ✅
 5. Place page ✅
 6. Map view ✅
-7. Shareable lists and public page
+7. Shareable lists and public page ✅ (link previews need a Vercel redeploy)
 8. Polish
